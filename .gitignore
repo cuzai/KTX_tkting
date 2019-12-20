@@ -1,3 +1,4 @@
 login_info.py
 .vscode/
 __pycache__/
+chromedriver/
