@@ -1,17 +1,19 @@
 import time
 import re
 
-from Check_Chromedriver.Check_Chromedriver import Check_Chromedriver
+from Check_Chromedriver import Check_Chromedriver as cc
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 import login_info
+from PyQt5.QtCore import QThread
 
 from libs import Deal_btns, Input_things, Deal_alert
 
 
-class Tkting:
+class Tkting(Qthread):
+    alert = pyqtSignal(str)
+
     def __init__(self, is_headless=False):
-        cc = Check_Chromedriver()
         cc.main()
 
         self.chrome_options = Options()
@@ -24,6 +26,7 @@ class Tkting:
             "pwd": login_info.pwd,
             "depart": "서울",
             "dest": "부산",
+            "year": "2019",
             "month": "12",
             "day": "25",
             "depart_time_from": "18",
@@ -68,13 +71,13 @@ class Tkting:
                     Deal_btns.submit(driver)
                     go_next = False
                     break
-
-                # train
-                train = ticket.find_elements_by_css_selector("td")[1].get_attribute(
-                    "title"
-                )
-                if train != self.add_info["train"]:
-                    continue
+                if self.add_info["train"] != "":
+                    # train
+                    train = ticket.find_elements_by_css_selector("td")[1].get_attribute(
+                        "title"
+                    )
+                    if train != self.add_info["train"]:
+                        continue
 
                 normal_seat = ticket.find_elements_by_css_selector("td")[5]
                 isAvailable = normal_seat.find_element_by_css_selector(
@@ -143,12 +146,12 @@ class Tkting:
         driver.find_element_by_css_selector("#btn_next").click()
         Deal_alert.print_alert_all(driver)
 
-    def main(self):
+    def run(self):
         driver = self.get_driver()
         try:
             self.login(driver)
             Input_things.input_things(driver, self.add_info)
-            Deal_alert.print_alert(driver)
+            Deal_alert.print_alert_all(driver)
             if self.reservation(driver):
                 Deal_alert.print_alert_all(driver)
                 driver.find_element_by_css_selector("#btn_next").click()

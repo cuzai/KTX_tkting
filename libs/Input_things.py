@@ -8,6 +8,10 @@ def input_things(driver, add_info):
     # input departure
     input_departure(driver, add_info)
 
+    # input year
+    year_info = ["#s_year", add_info["year"]]
+    input_month_day(driver, year_info[0], year_info[1])
+
     # input month and day
     month_info = ["#s_month option", add_info["month"]]
     day_info = ["#s_day option", add_info["day"]]
