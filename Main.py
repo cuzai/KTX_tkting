@@ -3,7 +3,7 @@ from functools import partial
 from datetime import datetime
 import re
 
-
+import PyQt5
 from PyQt5 import uic, QtWidgets, QtCore
 from PyQt5.QtCore import pyqtSlot
 
@@ -17,6 +17,12 @@ form_class = uic.loadUiType("./ui/untitled.ui")[0]
 
 
 # class Main(QtWidgets.QMainWindow, Ui_MainWindow) :
+if hasattr(QtCore.Qt, 'AA_EnableHighDpiScaling'):
+    PyQt5.QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
+
+if hasattr(QtCore.Qt, 'AA_UseHighDpiPixmaps'):
+    PyQt5.QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
+
 class Main(QtWidgets.QMainWindow, form_class):
     def __init__(self):
         self.removed_station_name = ""
