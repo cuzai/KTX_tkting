@@ -5,15 +5,18 @@ from Check_Chromedriver import Check_Chromedriver as cc
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 import login_info
-from PyQt5.QtCore import QThread
+from PyQt5.QtCore import QThread, pyqtSignal
 
 from libs import Deal_btns, Input_things, Deal_alert
 
 
-class Tkting(Qthread):
-    alert = pyqtSignal(str)
+class Tkting(QThread):
+    alert = pyqtSignal(str, list)
+    error = pyqtSignal(str)
 
     def __init__(self, is_headless=False):
+        super().__init__()
+
         cc.main()
 
         self.chrome_options = Options()
@@ -144,25 +147,31 @@ class Tkting(Qthread):
         driver.switch_to.frame("mainframeSaleInfo")
         driver.find_element_by_css_selector("#radSmart1").click()
         driver.find_element_by_css_selector("#btn_next").click()
-        Deal_alert.print_alert_all(driver)
+        Deal_alert.print_alert_all(driver, self.alert)
 
     def run(self):
-        driver = self.get_driver()
         try:
+            driver = self.get_driver()
             self.login(driver)
             Input_things.input_things(driver, self.add_info)
-            Deal_alert.print_alert_all(driver)
+            Deal_alert.print_alert_all(driver, self.alert)
             if self.reservation(driver):
-                Deal_alert.print_alert_all(driver)
+                Deal_alert.print_alert_all(driver, self.alert)
                 driver.find_element_by_css_selector("#btn_next").click()
                 self.payment(driver)
+        except Exception as e:
+            self.error.emit(str(e))
+            pass
         finally:
             # time.sleep(60)
-            driver.quit()
-            print(
-                "-----------------------------killed---------------------------------"
-            )
+            try:
+                driver.quit()
+                print(
+                    "----------------killed------------"
+                )
+            except Exception:
+                pass
 
 
 if __name__ == "__main__":
-    Tkting().main()
+    Tkting().run()

@@ -28,15 +28,20 @@ def deal_hour_from(widget):
     hour_now = datetime.now().hour
     for i in range(24):
         widget.addItem(str(i))
-    widget.setCurrentIndex(hour_now - 1)
+        widget.setCurrentIndex(hour_now)
 
 
 def deal_hour_to(widget, hour_from):
     hour_from_text = int(hour_from.currentText())
+    print(hour_from_text)
     widget.clear()
-    for i in range(hour_from_text, 24):
+    for i in range(hour_from_text + 1, 50):
+        if hour_from_text == 23:
+            widget.addItem("00")
+            return
         if i <= 23:
             widget.addItem(str(i))
+        elif i == 24:
+            widget.addItem("00")
         else:
             return
-

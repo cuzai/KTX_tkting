@@ -19,12 +19,13 @@ def deal_alert_all(driver):
         pass
 
 
-def print_alert_all(driver):
+def print_alert_all(driver, signal):
+    text_li = []
     try:
         while True:
             text = driver.switch_to.alert.text
-            print(text)
             driver.switch_to.alert.accept()
+            signal.emit(text, [driver])
             time.sleep(1)
     except selenium.common.exceptions.NoAlertPresentException:
-        pass
+        return text_li

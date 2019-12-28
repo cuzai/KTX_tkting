@@ -4,7 +4,7 @@ from datetime import datetime
 import re
 
 
-from PyQt5 import uic, QtWidgets
+from PyQt5 import uic, QtWidgets, QtCore
 from PyQt5.QtCore import pyqtSlot
 
 # from ui.myUi import Ui_MainWindow
@@ -33,7 +33,6 @@ class Main(QtWidgets.QMainWindow, form_class):
 
         # date init
         date_init.deal_year(self.combo_year)
-        print(self.combo_year.currentText())
         date_init.deal_month(self.combo_month)
         self.combo_month.currentIndexChanged.connect(
             partial(date_init.deal_day, self.combo_day, self.combo_month)
@@ -122,7 +121,6 @@ class Main(QtWidgets.QMainWindow, form_class):
         self.combo_person.currentIndexChanged.connect(self.deal_combo)
 
     def button_init(self):
-
         self.pushButton.clicked.connect(self.click_button)
 
     def deal_radio(self, radio_li, info):
@@ -149,23 +147,110 @@ class Main(QtWidgets.QMainWindow, form_class):
         self.add_info["people"] = self.combo_person.currentText()
 
     def click_button(self):
+        if (
+            len(self.add_info) >= 11
+            and self.combo_destination.currentText() != "--선택--"
+            and self.combo_departure.currentText() != "--선택--"
+        ):
+            self.tkt = Tkting()
+            self.tkt.add_info = self.add_info
+            self.status.setText("티켓을 찾는 중...")
+            self.tkt.alert.connect(self.setStatus)
+            self.tkt.error.connect(self.setError)
+            self.tkt.start()
+            self.pushButton.setEnabled(False)
+
+    @pyqtSlot(str, list)
+    def setStatus(self, e, driver):
+        self.status.setText(e)
+        driver[0].quit()
+        print("setstatus")
+
+    @pyqtSlot(str)
+    def setError(self, e):
         try:
-            if (
-                len(self.add_info) >= 11
-                and self.combo_destination.currentText() != "--선택--"
-                and self.combo_departure.currentText() != "--선택--"
-            ):
-                self.status.setText("티켓을 찾는 중...")
-                tkting = Tkting()
-                tkting.add_info = self.add_info
-                tkting.run()
-        except Exception as e:
             m = re.compile("Alert Text: (.*)\n.*")
             p = m.search(str(e))
-            try:
-                self.status.setText(p.group(1))
-            except AttributeError:
-                pass
+            self.status.setText(p.group(1))
+            print("seterror")
+            if p.group(1) == "회원번호를 정확하게 입력하여 주십시오.":
+                self.label_id = QtWidgets.QLabel(self.groupBox_6)
+                self.label_id.setAlignment(
+                    QtCore.Qt.AlignRight
+                    | QtCore.Qt.AlignTrailing
+                    | QtCore.Qt.AlignVCenter
+                )
+                self.label_id.setObjectName("label_id")
+                self.gridLayout_11.addWidget(self.label_id, 0, 1)
+                self.label_id.setText("ID(회원번호) ")
+
+                self.label_pwd = QtWidgets.QLabel(self.groupBox_6)
+                self.label_pwd.setAlignment(
+                    QtCore.Qt.AlignRight
+                    | QtCore.Qt.AlignTrailing
+                    | QtCore.Qt.AlignVCenter
+                )
+                self.label_pwd.setObjectName("label_pwd")
+                self.gridLayout_11.addWidget(self.label_pwd, 0, 3)
+                self.label_pwd.setText("비밀번호 ")
+
+                sizePolicy = QtWidgets.QSizePolicy(
+                    QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Fixed
+                )
+                sizePolicy.setHorizontalStretch(0)
+                sizePolicy.setVerticalStretch(0)
+
+                self.lineEdit_pwd = QtWidgets.QLineEdit(self.groupBox_6)
+                sizePolicy.setHeightForWidth(
+                    self.lineEdit_pwd.sizePolicy().hasHeightForWidth()
+                )
+
+                self.lineEdit_pwd.setSizePolicy(sizePolicy)
+                self.lineEdit_pwd.setObjectName("lineEdit_pwd")
+                self.gridLayout_11.addWidget(self.lineEdit_pwd, 0, 4)
+                self.lineEdit_pwd.setEchoMode(QtWidgets.QLineEdit.Password)
+
+                self.lineEdit_id = QtWidgets.QLineEdit(self.groupBox_6)
+                sizePolicy.setHeightForWidth(
+                    self.lineEdit_id.sizePolicy().hasHeightForWidth()
+                )
+                self.lineEdit_id.setSizePolicy(sizePolicy)
+                self.lineEdit_id.setObjectName("lineEdit_id")
+                self.gridLayout_11.addWidget(self.lineEdit_id, 0, 2)
+
+                self.pushButton_2 = QtWidgets.QPushButton(self.groupBox_4)
+                sizePolicy = QtWidgets.QSizePolicy(
+                    QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed
+                )
+                sizePolicy.setHorizontalStretch(0)
+                sizePolicy.setVerticalStretch(0)
+                sizePolicy.setHeightForWidth(
+                    self.pushButton_2.sizePolicy().hasHeightForWidth()
+                )
+                self.pushButton_2.setSizePolicy(sizePolicy)
+                self.pushButton_2.setObjectName("pushButton_2")
+                self.gridLayout_10.addWidget(self.pushButton_2, 0, 5)
+                self.pushButton_2.setText("로그인")
+                self.pushButton_2.clicked.connect(self.login_again)
+
+                self.pushButton.setEnabled(True)
+
+        except AttributeError:
+            print("serterror2")
+            self.status.setText("")
+            self.pushButton.setEnabled(True)
+            pass
+
+    def login_again(self):
+        new_id = self.lineEdit_id.text()
+        self.add_info["id"] = new_id
+        self.add_info["pwd"] = self.lineEdit_pwd.text()
+        # print(self.add_info)
+        self.pushButton_2.setEnabled(False)
+        self.label_id.setEnabled(False)
+        self.lineEdit_id.setEnabled(False)
+        self.lineEdit_pwd.setEnabled(False)
+        self.label_pwd.setEnabled(False)
 
 
 if __name__ == "__main__":
